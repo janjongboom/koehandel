@@ -21,11 +21,12 @@ var turn = function () {
         turn();
     };
     
+    console.log("\n");
     // show the public deck of each player
     players.forEach(function (player) {
         console.log(getPlayerDeckAsString(player));
     });
-    console.log("");
+    console.log("\n");
     
     // get the new active player
     activePlayerIx = ++activePlayerIx % players.length;
@@ -42,10 +43,12 @@ var turn = function () {
     var drawCard = function (next) {
         var card = deck.splice(0, 1)[0];
         
+        console.log("Player", activePlayer.name, "drew", card.name, "(" + card.value + ")");
+        
         // if a donkey was drawn more money will be added to the game
         if (card.value === 500) {
             // grab it from the donkey money array
-            var newMoney = donkeyMoney.splice(0, 1);
+            var newMoney = donkeyMoney.splice(0, 1)[0];
             // add it to all users
             players.forEach(function (p) {
                 p.money.push(newMoney);
