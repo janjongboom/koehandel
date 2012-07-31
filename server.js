@@ -79,10 +79,7 @@ var turn = function () {
             if (userInTurn === activePlayer) {
                 // if all other players are passed, this player buys for '0'
                 if (passed.length === players.length - 1) {
-                    return callback({
-                        player: activePlayer,
-                        bid: 0
-                    });
+                    return callback(currentBid);
                 }
                 // otherwise just go to next one
                 return nextOne(callback);
@@ -113,7 +110,8 @@ var turn = function () {
         // nextOne is the iterator among all players
         nextOne(function (activeBid) {
             // no bid?
-            if (!activeBid || activeBid.bid === 0) {
+            if (!activeBid) {
+                console.log(activePlayer.name, "received a", card.name, "for free");
                 // the player who drew this card gets it for free
                 activePlayer.cards.push(card);
                 return next();
