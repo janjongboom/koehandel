@@ -18,7 +18,7 @@ module.exports = function Player (name) {
     // initial cards
     this.cards = [];
     
-    // ==== actions
+    // ==== action interface
     /**
      * Make a bid for a card.
      * @param card {AnimalCard}
@@ -75,6 +75,30 @@ module.exports = function Player (name) {
         });
         
         callback(choseArr.length ? choseArr[0] : closest);
+    };
+    
+    /**
+     * Another buyer bought a card you drew, do you want to buy it yourself?
+     * @param card {Card} The drawn card
+     * @param highestBid {Object} Object with { bid: {Number}, player: {Player} }
+     * @param callback {Function} Invoke with false or true
+     */
+    this.wantToBuyYourself = function (card, highestBid, callback) {
+        var self = this;
+        
+        var question =
+            highestBid.player.name + " bought a " + card.name + " from you for " + highestBid.bid + ". " +
+            "Do you want to buy it instead?";
+            
+        this.ask(question, function (answer) {
+            // dont wanna buy?
+            if (!answer || answer.toLowerCase() === "n") {
+                return callback(false);
+            }
+            
+            // otherwise say YES
+            callback(true);
+        });
     };
     
     this.ask = function (question, callback) {

@@ -21,12 +21,13 @@ var turn = function () {
         turn();
     };
     
-    console.log("\n");
+    console.log("\n=====PUBLIC DECKS=====");
+    console.log(deck.length+"", "cards left in deck");
     // show the public deck of each player
     players.forEach(function (player) {
         console.log(getPlayerDeckAsString(player));
     });
-    console.log("\n");
+    console.log("======================");
     
     // get the new active player
     activePlayerIx = ++activePlayerIx % players.length;
@@ -111,29 +112,29 @@ var turn = function () {
         
         // nextOne is the iterator among all players
         nextOne(function (activeBid) {
-            // the active player may buy it as well but we get that later on
-            
-            // the highest bidding player gets the card
-            console.log("Player", activeBid.player.name, " bought a ", card.name, " for ", activeBid.bid);
-            activeBid.player.cards.push(card);
-            
-            // now we want money from the player as long as the bid was more than '0'
-            // @todo, what if the player doesn't have enough money?
-            if (activeBid.bid > 0) {
-                activeBid.player.giveMoney(activeBid.bid, function (cards) {
-                    console.log("Cards given", cards);
-                    
-                    cards.forEach(function (c) {
-                        activeBid.player.money.splice(activeBid.player.money.indexOf(c), 1);
-                        activePlayer.money.push(c);
-                    });
-                    
-                    next();
-                });
+            // no bid?
+            if (!activeBid || activeBid.bid === 0) {
+                // the player who drew this card gets it for free
+                activePlayer.cards.push(card);
+                return next();
             }
-            else {
-                next();
-            }
+            
+            // otherwise ask the active player if he wants it for the current bid
+            activePlayer.wantToBuyYourself(card, activeBid, function (resp) {
+                console.log("Player", (resp ? activePlayer : activeBid.player).name, 
+                    "bought a", card.name, "for", activeBid.bid);
+                
+                // if resp is true then the activePlayer wants to buy it...
+                if (resp) {
+                    activePlayer.cards.push(card);
+                    moveMoney(activePlayer, activeBid.player, activeBid.bid, next);
+                }
+                else {
+                    // otherwise money from bidding player -> active playah
+                    activeBid.player.cards.push(card);
+                    moveMoney(activeBid.player, activePlayer, activeBid.bid, next);
+                }
+            });
         });
     };
     
@@ -145,15 +146,39 @@ var turn = function () {
 turn();
 
 /**
+ * Move money from one player to another
+ * @param sourcePlayer {Player} Player that gives money
+ * @param targetPlayer {Player} Player that receives
+ * @param amount {Number} The amount of money
+ * @param callback {Function} Invoke when done
+ */
+function moveMoney (sourcePlayer, targetPlayer, amount, callback) {
+    // sourceplayer has to give some cards from his stash
+    sourcePlayer.giveMoney(amount, function (cards) {
+        console.log("Cards given from", sourcePlayer.name, "to", targetPlayer.name, cards);
+        
+        cards.forEach(function (c) {
+            // then remove it from his stash
+            sourcePlayer.money.splice(sourcePlayer.money.indexOf(c), 1);
+            // and push it to the next playah
+            targetPlayer.money.push(c);
+        });
+        
+        // and done...
+        callback();
+    });
+}
+
+/**
  * Format the public deck of the players for display purposes
  */
 function getPlayerDeckAsString (player) {
-    // sort lo-hi on value
+    // sort hi-lo on value
     player.cards.sort(function (c1, c2) {
-        return c1.value > c2.value ? 1 : (c1.value === c2.value ? 0 : -1);
+        return c1.value > c2.value ? -1 : (c1.value === c2.value ? 0 : 1);
     });
     
-    // create a grouped object
+    // create a grouped object so we can show it in a nice fashionable fashion
     var grouped = {};
     player.cards.forEach(function (c) {
         if (grouped[c.name]) {
