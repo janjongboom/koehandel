@@ -37,7 +37,45 @@ var turn = function () {
     // - deal with other player
     // - draw a card
     var dealWithOtherPlayer = function (next) {
-        next();
+        // so user should make an offer to another player
+        // -card @todo how to deal with multiple cards?
+        // -targetPlayer the other player that you challenge
+        // -bid array of cards
+        activePlayer.makeOfferToOtherPlayer(function (card, targetPlayer, activePlayerBid) {
+            // if both players have 2 cards, then we play for two...
+            // @todo verify that the other player has a card as well
+            var noOfCards = (activePlayer.cards.filter(function (c) {
+                    return c.amount === card.amount;
+                }).length === 2 
+                && 
+                targetPlayer.cards.filter(function (c) {
+                    return c.amount === card.amount;
+                }).length === 2) ? 2 : 1;
+            
+            console.log("Player", activePlayer.name, "wants to buy", noOfCards, card.name,
+                "from", targetPlayer.name, "for", activePlayerBid.length, "cards");
+            
+            // target player has to respond...
+            targetPlayer.respondToOffer(card, activePlayer, activePlayerBid.length, function (targetPlayerBid) {
+                console.log("Player", targetPlayer.name, "responded with", targetPlayerBid.length, "cards");
+                
+                // move money around
+                moveMoney(activePlayer, targetPlayer, activePlayerBid, function () {
+                    // and other way around
+                    moveMoney(targetPlayer, activePlayer, targetPlayerBid, function () {
+                        // if the targetPlayerBid exceeds activePlayerBid then the target player wins
+                        // if equal, retry @todo implement
+                        if (cardSum(targetPlayerBid) > cardSum(activePlayerBid)) {
+                            console.log(targetPlayer.name, "bought", noOfCards, card.name);
+                        }
+                        else {
+                            // @todo retry if equal
+                            console.log(activePlayer.name, "bought", noOfCards, card.name);
+                        }
+                    });
+                });
+            });
+        });
     };
     
     // grab the next card from the deck
@@ -151,8 +189,7 @@ turn();
  * @param callback {Function} Invoke when done
  */
 function moveMoney (sourcePlayer, targetPlayer, amount, callback) {
-    // sourceplayer has to give some cards from his stash
-    sourcePlayer.giveMoney(amount, function (cards) {
+    var moveCards = function (cards) {
         console.log("Cards given from", sourcePlayer.name, "to", targetPlayer.name, cards);
         
         cards.forEach(function (c) {
@@ -162,9 +199,28 @@ function moveMoney (sourcePlayer, targetPlayer, amount, callback) {
             targetPlayer.money.push(c);
         });
         
-        // and done...
         callback();
-    });
+    };
+    
+    // amount can be either an array of cards, or an amount...
+    if (amount instanceof Array) {
+        moveCards(amount);
+    }
+    else {
+        // sourceplayer has to give some cards from his stash
+        sourcePlayer.giveMoney(amount, moveCards);
+    }
+}
+
+/**
+ * Get sum from an array of cards
+ */
+function cardSum (cards) {
+    var sum = 0;
+    for (var ix = 0; ix < cards.length; ix++) {
+        sum += cards[ix];
+    }
+    return sum;
 }
 
 /**
