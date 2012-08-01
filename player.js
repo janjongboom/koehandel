@@ -18,6 +18,20 @@ module.exports = function Player (name) {
     // initial cards
     this.cards = [];
     
+    // get the number of complete sets you have
+    this.completeCardSets = function () {
+        var cardsMap = {}
+        
+        for (var ix = 0; ix < this.cards.length; ix++) {
+            var name = this.cards[ix].name;
+            cardsMap[name] = (cardsMap[name] || 0) + 1;
+        }
+        
+        return Object.keys(cardsMap).filter(function (k) {
+            return cardsMap[k] === 4;
+        });
+    };
+    
     // ==== action interface
     /**
      * Make a bid for a card.
@@ -107,7 +121,7 @@ module.exports = function Player (name) {
      */
     this.drawOrDeal = function (callback) {
         this.ask("Do you want to [1] draw a card, or [2] deal with player", function (res) {
-            callback(Number(res));
+            callback(Number(res || 1));
         });
     };
     
@@ -138,7 +152,7 @@ module.exports = function Player (name) {
         var cardsText = self.money.join(", ");
         
         self.ask("Which card do you want to deal? " + cardText, function (res) {
-            var card = players.cards.filter(function (c) {
+            var card = self.cards.filter(function (c) {
                 return c.value === Number(res);
             })[0];
             

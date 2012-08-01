@@ -40,8 +40,12 @@ var turn = function () {
         // so user should make an offer to another player
         // -card @todo how to deal with multiple cards?
         // -targetPlayer the other player that you challenge
-        // -bid array of cards        
-        activePlayer.makeOfferToOtherPlayer(function (card, targetPlayer, activePlayerBid) {
+        // -bid array of cards     
+        var allPlayersExceptActiveOne = players.filter(function (p) {
+            return p !== activePlayer;
+        });
+        
+        activePlayer.makeOfferToOtherPlayer(allPlayersExceptActiveOne, function (card, targetPlayer, activePlayerBid) {
             // if both players have 2 cards, then we play for two...
             // @todo verify that the other player has a card as well
             var stackOfCards = createDealStack(card, activePlayer, targetPlayer);
@@ -173,16 +177,13 @@ var turn = function () {
         });
     };
     
-    // if there are no cards left in the deck, you can only deal
-    if (deck.length === 0) {
-        dealWithOtherPlayer(next);
-    }
-    // you no have no cards, then draw
-    else if (activePlayer.cards.length === 0) {
-        drawCard(next);
-    }
-    // otherwise ask question to user
-    else {
+    // you can draw cards when there are cards in the deck
+    var canDraw = deck.length > 0; 
+    // you can deal when you have non-complete sets
+    var canDeal = activePlayer.completeCardSets() * 4 !== activePlayer.cards.length;
+    
+    // ask question if both possible
+    if (canDraw && canDeal) {
         // draw or deal, respond with '1' to draw or '2' to deal...
         activePlayer.drawOrDeal(function (res) {
             if (res === 1) {
@@ -192,6 +193,29 @@ var turn = function () {
                 dealWithOtherPlayer(next);
             }
         });
+    }
+    else if (canDraw && !canDeal) {
+        // can only draw -> draw
+        drawCard(next);
+    }
+    else if (!canDraw && canDeal) {
+        // can only deal? -> deal
+        dealWithOtherPlayer(next);
+    }
+    else {
+        // cant do anything
+        // see if other players can play...
+        if (players.filter(function (p) {
+                return p.completeCardSets() * 4 !== p.cards.length;
+            }).length === 0) {
+            
+            // no-one can play?
+            console.log("We're done!");
+        }
+        else {
+            // otherwise go to next player
+            next();
+        }
     }
 };
 
@@ -295,8 +319,8 @@ function createDealStack (card, playerA, playerB) {
     var stack = [];
     for (var ix = 0; ix < noOfCards; ix++) {
         // grab card from A and B and push to stack
-        stack.push(playerA.cards.splice(playerA.cards.indexOf(card), 1));
-        stack.push(playerB.cards.splice(playerB.cards.indexOf(card), 1));
+        stack.push(playerA.cards.splice(playerA.cards.indexOf(card), 1)[0]);
+        stack.push(playerB.cards.splice(playerB.cards.indexOf(card), 1)[0]);
     }
     
     return stack;
