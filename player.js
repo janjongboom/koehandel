@@ -101,6 +101,75 @@ module.exports = function Player (name) {
         });
     };
     
+    /**
+     * Initial question, do you want to draw a new card or deal with someone else
+     * @param callback {Function} Invoke with 1 to draw or with 2 to deal
+     */
+    this.drawOrDeal = function (callback) {
+        this.ask("Do you want to [1] draw a card, or [2] deal with player", function (res) {
+            callback(Number(res));
+        });
+    };
+    
+    /**
+     * Make an offer to another player (initial action in a deal)
+     * @param players [{Player}] Array with all other players
+     * @param callback {Function} Invoke with
+     *      card {Card} the card you want to play
+     *      targetPlayer {Player} The player you want to play
+     *      bid [{Number}] Array of money cards
+     */
+    this.makeOfferToOtherPlayer = function (players, callback) {
+        var self = this;
+        
+        var cardText = self.cards
+            .filter(function (el, i, a) { return i === a.indexOf(el) ? 1 : 0; })
+            .map(function (c) {
+                return "[" + c.value + "] " + c.name;
+            })
+            .join(", ");
+        
+        var playerText = players
+            .map(function (p, ix) {
+                return "[" + ix + "] " + p.name;
+            })
+            .join(", ");
+        
+        var cardsText = self.money.join(", ");
+        
+        self.ask("Which card do you want to deal? " + cardText, function (res) {
+            var card = players.cards.filter(function (c) {
+                return c.value === Number(res);
+            })[0];
+            
+            self.ask("Which player do you want to play? " + playerText, function (res) {
+                var targetPlayer = players[Number(res)];
+                
+                self.ask("Which money cards do you play? " + cardsText, function (res) {
+                    var cards = res.split(" ").map(function (c) { return Number(c); });
+                    
+                    callback(card, targetPlayer, cards);
+                });
+            });
+        });
+    };
+    
+    /**
+     * Respond to an offer made for your card
+     * @param card {Card} The card being played
+     * @param offeringPlayer {Player} The player who is dealing
+     * @param noOfCards {Number} The number of money cards offered
+     * @param callback {Function} Invoke with money cards you offer
+     */
+    this.respondToOffer = function (card, offeringPlayer, noOfCards, callback) {
+        var question = "Player " + offeringPlayer.name + " offers " + noOfCards + 
+            " for your " + card.name + ". Which cards do you play? " + this.money.join(", ");
+        
+        this.ask(question, function (res) {
+            callback(res.split(" ").map(function (c) { return Number(c); }));
+        });
+    };
+    
     this.ask = function (question, callback) {
         var stdin = process.stdin,
             stdout = process.stdout;

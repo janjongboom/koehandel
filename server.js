@@ -40,19 +40,13 @@ var turn = function () {
         // so user should make an offer to another player
         // -card @todo how to deal with multiple cards?
         // -targetPlayer the other player that you challenge
-        // -bid array of cards
+        // -bid array of cards        
         activePlayer.makeOfferToOtherPlayer(function (card, targetPlayer, activePlayerBid) {
             // if both players have 2 cards, then we play for two...
             // @todo verify that the other player has a card as well
-            var noOfCards = (activePlayer.cards.filter(function (c) {
-                    return c.amount === card.amount;
-                }).length === 2 
-                && 
-                targetPlayer.cards.filter(function (c) {
-                    return c.amount === card.amount;
-                }).length === 2) ? 2 : 1;
+            var stackOfCards = createDealStack(card, activePlayer, targetPlayer);
             
-            console.log("Player", activePlayer.name, "wants to buy", noOfCards, card.name,
+            console.log("Player", activePlayer.name, "wants to buy", stackOfCards.length, card.name,
                 "from", targetPlayer.name, "for", activePlayerBid.length, "cards");
             
             // target player has to respond...
@@ -66,12 +60,17 @@ var turn = function () {
                         // if the targetPlayerBid exceeds activePlayerBid then the target player wins
                         // if equal, retry @todo implement
                         if (cardSum(targetPlayerBid) > cardSum(activePlayerBid)) {
-                            console.log(targetPlayer.name, "bought", noOfCards, card.name);
+                            // give cards
+                            targetPlayer.cards = targetPlayer.cards.concat(stackOfCards);
+                            console.log(targetPlayer.name, "bought", stackOfCards.length, card.name);
                         }
                         else {
                             // @todo retry if equal
-                            console.log(activePlayer.name, "bought", noOfCards, card.name);
+                            activePlayer.cards = activePlayer.cards.concat(stackOfCards);
+                            console.log(activePlayer.name, "bought", stackOfCards.length, card.name);
                         }
+                        
+                        next();
                     });
                 });
             });
@@ -174,8 +173,26 @@ var turn = function () {
         });
     };
     
-    // @todo, ask the player if he wants to draw a card or deal with another player
-    drawCard(next);
+    // if there are no cards left in the deck, you can only deal
+    if (deck.length === 0) {
+        dealWithOtherPlayer(next);
+    }
+    // you no have no cards, then draw
+    else if (activePlayer.cards.length === 0) {
+        drawCard(next);
+    }
+    // otherwise ask question to user
+    else {
+        // draw or deal, respond with '1' to draw or '2' to deal...
+        activePlayer.drawOrDeal(function (res) {
+            if (res === 1) {
+                drawCard(next);
+            }
+            else {
+                dealWithOtherPlayer(next);
+            }
+        });
+    }
 };
 
 // start the game with the first turn
@@ -250,5 +267,38 @@ function getPlayerDeckAsString (player) {
         var v = grouped[c];
         return v.card.name + " (" + v.card.value + ") " + "(" + v.cnt + "x)";
     }).join(", ")].join(" ");
+}
+
+/**
+ * Create a stack of cards if dealing, so f.e. if playing for a Cow and both have 2,
+ * a stack of 4 cows will be created.
+ * @param card {Card} The card to play for
+ * @param playerA {Player} One of the players
+ * @param playerB {Player} Other one
+ * @return [{Card}] Cards that we'll deal for
+ */
+function createDealStack (card, playerA, playerB) {
+    // get number of cards for A
+    var cntA = playerA.cards.filter(function (c) {
+        return c.value === card.value;
+    }).length;
+    
+    // get number of cards from B
+    var cntB = playerB.cards.filter(function (c) {
+        return c.value === card.value;
+    }).length;
+    
+    // number of cards is the lower bound
+    var noOfCards = cntA > cntB ? cntB : cntA;
+    
+    // so let's splice these thinga's
+    var stack = [];
+    for (var ix = 0; ix < noOfCards; ix++) {
+        // grab card from A and B and push to stack
+        stack.push(playerA.cards.splice(playerA.cards.indexOf(card), 1));
+        stack.push(playerB.cards.splice(playerB.cards.indexOf(card), 1));
+    }
+    
+    return stack;
 }
 
