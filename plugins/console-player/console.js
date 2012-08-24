@@ -1,9 +1,15 @@
+module.exports = function (options, imports, register) {
+    register(null, {
+        "player.console": Player
+    });
+};
+
 /**
  * Console player
  * @ctor
  * @param me {Player} You, the player
  */ 
-module.exports = function (me) {
+var Player = function (me) {
     /**
      * Make a bid for a card.
      * @param card {AnimalCard}

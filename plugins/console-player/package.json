@@ -1,0 +1,14 @@
+{
+    "name": "console-player",
+    "version": "0.0.1",
+
+    "main": "./console.js",
+    "private": true,
+
+    "plugin": {
+        "provides": [
+            "player.console"
+        ],
+        "consumes": []
+    }
+}

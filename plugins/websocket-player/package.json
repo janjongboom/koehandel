@@ -1,0 +1,14 @@
+{
+    "name": "websocket-player",
+    "version": "0.0.1",
+
+    "main": "./websocket.js",
+    "private": true,
+
+    "plugin": {
+        "provides": [
+            "player.websocket"
+        ],
+        "consumes": []
+    }
+}

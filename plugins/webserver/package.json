@@ -1,0 +1,14 @@
+{
+    "name": "webserver",
+    "version": "0.0.1",
+
+    "main": "./web-plugin.js",
+    "private": true,
+
+    "plugin": {
+        "provides": [
+            "socketio"
+        ],
+        "consumes": []
+    }
+}

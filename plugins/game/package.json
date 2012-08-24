@@ -1,0 +1,15 @@
+{
+    "name": "game",
+    "version": "0.0.1",
+
+    "main": "./server.js",
+    "private": true,
+
+    "plugin": {
+        "provides": [],
+        "consumes": [
+            "player.console",
+            "player.websocket"
+        ]
+    }
+}
