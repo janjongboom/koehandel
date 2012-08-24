@@ -1,16 +1,48 @@
 var Player = require("./player");
+var ConsolePlayer = require("./player-implementations/console");
 var deck = require("./animal-cards").generateDeck();
 
 // donkey brings more money in the game
 var donkeyMoney = [ 50, 100, 200, 500 ];
 
+var playingPlayers = {
+    "no1": ConsolePlayer,
+    "no2": ConsolePlayer,
+    "no3": ConsolePlayer
+};
+
 // from now it's turn based
 // let's create some players first
-var players = [
-    new Player("no1"),
-    new Player("no2"),
-    new Player("no3")
-];
+// based on the 'playingPlayers' thingy
+var players = [];
+
+/**
+ * A shim that the implementations get.
+ * Because they aren't allowed to have access to the actual player object
+ */
+function createPlayerShim(player) {
+    return {
+        name: player.name,
+        getCards: function () {
+            return player.cards.slice();
+        },
+        getMoneyCards: function () {
+            return player.money.slice();
+        },
+        getTotalMoney: function () {
+            return player.getTotalMoney();
+        }
+    };
+}
+
+Object.keys(playingPlayers).forEach(function (name) {
+    var player = new Player(name);
+    // create a shim
+    var impl = new playingPlayers[name](createPlayerShim(player));
+    player.impl = impl;
+    
+    players.push(player);
+});
 
 // player 0 can start
 var activePlayerIx = -1;
@@ -45,7 +77,7 @@ var turn = function () {
             return p !== activePlayer;
         });
         
-        activePlayer.makeOfferToOtherPlayer(allPlayersExceptActiveOne, function (card, targetPlayer, activePlayerBid) {
+        activePlayer.impl.makeOfferToOtherPlayer(allPlayersExceptActiveOne, function (card, targetPlayer, activePlayerBid) {
             // if both players have 2 cards, then we play for two...
             // @todo verify that the other player has a card as well
             var stackOfCards = createDealStack(card, activePlayer, targetPlayer);
@@ -54,7 +86,7 @@ var turn = function () {
                 "from", targetPlayer.name, "for", activePlayerBid.length, "cards");
             
             // target player has to respond...
-            targetPlayer.respondToOffer(card, activePlayer, activePlayerBid.length, function (targetPlayerBid) {
+            targetPlayer.impl.respondToOffer(card, activePlayer, activePlayerBid.length, function (targetPlayerBid) {
                 console.log("Player", targetPlayer.name, "responded with", targetPlayerBid.length, "cards");
                 
                 // move money around
@@ -133,7 +165,7 @@ var turn = function () {
             }
             
             // otherwise ask the player if he wants to buy something
-            userInTurn.bidForCard(card, currentBid, function (v) {
+            userInTurn.impl.bidForCard(card, currentBid, function (v) {
                 if (v) {
                     currentBid = {
                         player: userInTurn,
@@ -159,7 +191,7 @@ var turn = function () {
             }
             
             // otherwise ask the active player if he wants it for the current bid
-            activePlayer.wantToBuyYourself(card, activeBid, function (resp) {
+            activePlayer.impl.wantToBuyYourself(card, activeBid, function (resp) {
                 console.log("Player", (resp ? activePlayer : activeBid.player).name, 
                     "bought a", card.name, "for", activeBid.bid);
                 
@@ -180,12 +212,12 @@ var turn = function () {
     // you can draw cards when there are cards in the deck
     var canDraw = deck.length > 0; 
     // you can deal when you have non-complete sets
-    var canDeal = activePlayer.completeCardSets() * 4 !== activePlayer.cards.length;
+    var canDeal = activePlayer.completeCardSets().length * 4 !== activePlayer.cards.length;
     
     // ask question if both possible
     if (canDraw && canDeal) {
         // draw or deal, respond with '1' to draw or '2' to deal...
-        activePlayer.drawOrDeal(function (res) {
+        activePlayer.impl.drawOrDeal(function (res) {
             if (res === 1) {
                 drawCard(next);
             }
@@ -206,11 +238,17 @@ var turn = function () {
         // cant do anything
         // see if other players can play...
         if (players.filter(function (p) {
-                return p.completeCardSets() * 4 !== p.cards.length;
+                return p.completeCardSets().length * 4 !== p.cards.length;
             }).length === 0) {
             
             // no-one can play?
             console.log("We're done!");
+            console.log(players.sort(function (p1, p2) {
+                return p1.getTotalPoints() > p2.getTotalPoints() ? -1 : 
+                    (p1.getTotalPoints() === p2.getTotalPoints() ? 0 : 1);
+            }).map(function (p, ix) {
+                return (ix+1) + ". " + p.name + " " + p.getTotalPoints();
+            }).join("\n"));
         }
         else {
             // otherwise go to next player
@@ -249,7 +287,7 @@ function moveMoney (sourcePlayer, targetPlayer, amount, callback) {
     }
     else {
         // sourceplayer has to give some cards from his stash
-        sourcePlayer.giveMoney(amount, moveCards);
+        sourcePlayer.impl.giveMoney(amount, moveCards);
     }
 }
 
@@ -325,4 +363,3 @@ function createDealStack (card, playerA, playerB) {
     
     return stack;
 }
-

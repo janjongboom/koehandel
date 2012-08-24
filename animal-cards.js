@@ -11,34 +11,34 @@ var types = [
         name: "Cat",
         value: 90
     },
-    {
-        name: "Dog",
-        value: 160
-    },
-    {
-        name: "Sheep",
-        value: 250
-    },
-    {
-        name: "Goat",
-        value: 350
-    },
-    {
-        name: "Donkey",
-        value: 500
-    },
-    {
-        name: "Pig",
-        value: 650
-    },
-    {
-        name: "Cow",
-        value: 800
-    },
-    {
-        name: "Horse",
-        value: 1000
-    }
+//    {
+//        name: "Dog",
+//        value: 160
+//    },
+//    {
+//        name: "Sheep",
+//        value: 250
+//    },
+//    {
+//        name: "Goat",
+//        value: 350
+//    },
+//    {
+//        name: "Donkey",
+//        value: 500
+//    },
+//    {
+//        name: "Pig",
+//        value: 650
+//    },
+//    {
+//        name: "Cow",
+//        value: 800
+//    },
+//    {
+//        name: "Horse",
+//        value: 1000
+//    }
 ];
 
 // every type has four playing cards
