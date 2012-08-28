@@ -9,7 +9,7 @@ var donkeyMoney = [ 50, 100, 200, 500 ];
 var playingPlayers = {
     "no1": imports["player.console"],
     "no2": imports["player.console"],
-    "no3": imports["player.console"]
+    "no3": imports["player.websocket"]
 };
 
 // from now it's turn based

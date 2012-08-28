@@ -1,6 +1,7 @@
 module.exports = function (options, imports, register) {
     var Player = function (me) {
-        imports.socketio.of("/socket/" + me.name).on("connection", function(socket) {
+        // so every player gets it's own channel in socketio
+        imports.socketio.of("/" + me.name).on("connection", function(socket) {
             socket.emit("hello", me.name);
         });
     };
