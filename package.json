@@ -1,6 +1,7 @@
 {
     "name": "koehandel",
     "description": "You're bluffing in node",
+    "version": "0.0.1",
     "author": "Jan Jongboom <janjongboom@gmail.com>",
     "dependencies": {
         "socket.io": "0.9.10",
