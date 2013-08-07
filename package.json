@@ -5,7 +5,8 @@
     "dependencies": {
         "socket.io": "0.9.10",
         "architect": "0.1.4",
-        "optimist": "0.3.4"
+        "optimist": "0.3.4",
+        "express": "3.3.4"
     },
     "devDependencies": {},
     "engine": "node >= 0.6.19"

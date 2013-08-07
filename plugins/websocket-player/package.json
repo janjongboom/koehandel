@@ -10,7 +10,8 @@
             "player.websocket"
         ],
         "consumes": [
-            "socketio"
+            "socketio",
+            "webserver"
         ]
     }
 }

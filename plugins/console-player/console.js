@@ -1,4 +1,6 @@
-module.exports = function (options, imports, register) {
+var EventEmitter = require("events").EventEmitter;
+
+module.exports = function (options, imports, register) {    
     register(null, {
         "player.console": Player
     });
@@ -9,7 +11,11 @@ module.exports = function (options, imports, register) {
  * @ctor
  * @param me {Player} You, the player
  */ 
-var Player = function (me) {
+function Player (me) {
+    this.init = function(ready) {
+        ready();
+    };
+    
     /**
      * Make a bid for a card.
      * @param card {AnimalCard}
@@ -185,4 +191,8 @@ var Player = function (me) {
         }
         return ps;
     }
-};
+}
+
+require("util").inherits(Player, EventEmitter);
+
+console.log("que", typeof new Player("").emit);

@@ -3,14 +3,14 @@ var types = [
         name: "Chicken",
         value: 10
     },
-    {
-        name: "Goose",
-        value: 40
-    },
-    {
-        name: "Cat",
-        value: 90
-    },
+//    {
+//        name: "Goose",
+//        value: 40
+//    },
+//    {
+//        name: "Cat",
+//        value: 90
+//    },
 //    {
 //        name: "Dog",
 //        value: 160

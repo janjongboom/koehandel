@@ -1,23 +1,22 @@
 var assert = require("assert");
-var http = require("http");
-var socketio = require("socket.io");
+var app = require('express')();
+var server = require('http').createServer(app);
+var io = require('socket.io').listen(server);
 
-module.exports = function (options, imports, register) {
-    assert(options.host, "Option 'host' is required");
-    assert(options.port, "Option 'port' is required");
-    
-    var server = simpleServer(options.port, options.host);
-    var io = socketio.listen(server);
-    
-    console.log("Web-interface listening on " + options.host + ":" + options.port);
-    
-    register(null, {
-        "socketio": io
-    });
-};
+module.exports = function(options, imports, register) {
+  assert(options.host, "Option 'host' is required");
+  assert(options.port, "Option 'port' is required");
 
-function simpleServer (port, host) {
-    return http.createServer(function(req, res) {
-        res.end("Koehandel ftw")
-    }).listen(port, host);
+  app.get("/", function(req, res, next) {
+    res.send("Koehandel ftw");
+  });
+
+  server.listen(options.port, options.host);
+
+  console.log("Web-interface listening on " + options.host + ":" + options.port);
+
+  register(null, {
+    "socketio": io,
+    "webserver": app
+  });
 };

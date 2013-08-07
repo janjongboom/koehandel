@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Koehandel player [%name%]</title>
+        <script src="/socket.io/socket.io.js"></script>
+    </head>
+    <body>
+        <script>
+            var socket = io.connect(window.location.host + "/player/[%name%]");
+            socket.on('report', function (data) {
+                console.log('report', JSON.stringify(data));
+            }); 
+            socket.on('hello', function(data) {
+                console.log('hello', data);
+            });
+            
+            socket.on('bid-for-card', function(data) {
+                console.log('Bid for card', JSON.stringify(data));
+                
+                var res = prompt('Bid for card?');
+                
+                socket.emit('reply', {
+                    id: data.id,
+                    data: res
+                });
+            });
+            
+            socket.on("give-money", function(data) {
+                console.log('Give money', JSON.stringify(data));
+                
+                socket.emit('reply', {
+                    id: data.id,
+                    data: prompt('Give money (seperate by comma)').split(',').map(Number)
+                });
+            });
+            
+            socket.on("respond-to-offer", function(data) {
+                console.log('Respond to offer', JSON.stringify(data));
+                
+                socket.emit('reply', {
+                    id: data.id,
+                    data: prompt('Respond to offer (seperate by comma)').split(',').map(Number)
+                });
+            });
+            
+            socket.on("draw-or-deal", function(data) {
+                socket.emit('reply', {
+                    id: data.id,
+                    data: prompt('Draw or deal [draw|deal]')
+                });
+            });
+            
+            socket.on("want-to-buy-yourself", function(data) {
+                console.log('Want to buy yourself?', JSON.stringify(data));
+                
+                socket.emit('reply', {
+                    id: data.id,
+                    data: prompt('Want to buy yourself? [true|false]') === 'true'
+                });
+            });
+            
+            socket.on("make-offer", function(data) {
+                console.log('Make offer', JSON.stringify(data));
+                
+                var card = Number(prompt('Which card to play (enter value)'));
+                var player = prompt('Which player to play (enter name)');
+                var money = prompt('Money cards (seperate by comma)').split(',').map(Number);
+                
+                socket.emit('reply', {
+                    id: data.id,
+                    data: {
+                        card: card,
+                        player: player,
+                        money: money
+                    }
+                });
+            });
+        </script>
+    </body>
+</html>
