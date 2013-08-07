@@ -9,6 +9,9 @@
         "provides": [
             "player.websocket"
         ],
-        "consumes": []
+        "consumes": [
+            "socketio",
+            "webserver"
+        ]
     }
 }
