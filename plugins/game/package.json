@@ -2,7 +2,7 @@
     "name": "game",
     "version": "0.0.1",
 
-    "main": "./server.js",
+    "main": "./game.js",
     "private": true,
 
     "plugin": {
